@@ -14,3 +14,11 @@ LazyData: true
 URL: https://github.com/rdinnager/phurl
 BugReports: https://github.com/rdinnager/phurl/issues
 RoxygenNote: 6.1.1
+Suggests: 
+    covr,
+    testthat,
+    spelling
+Language: en-AU
+Imports: 
+    magrittr,
+    tibble

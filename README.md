@@ -9,6 +9,8 @@
 status](https://travis-ci.org/rdinnager/phurl.svg?branch=master)\](<https://travis-ci.org/rdinnager/phurl>
 [![AppVeyor build
 status](https://ci.appveyor.com/api/projects/status/github/rdinnager/phurl?branch=master&svg=true)](https://ci.appveyor.com/project/rdinnager/phurl)
+[![Codecov test
+coverage](https://codecov.io/gh/rdinnager/phurl/branch/master/graph/badge.svg)](https://codecov.io/gh/rdinnager/phurl?branch=master)
 <!-- badges: end -->
 
 The goal of phurl is to …
