@@ -1,5 +1,5 @@
 Package: phurl
-Title: What the Package Does (One Line, Title Case)
+Title: Phylogenetic modelling Using Regularized Linear models
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Russell",
@@ -7,7 +7,10 @@ Authors@R:
            role = c("aut", "cre"),
            email = "r.dinnage@gmail.com",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: What license it uses
+Description: phurl runs phylogenetic models (e.g trait evolution models, diversification models) by parameterizing them as a simple linear model and using regularization to achieve identifiability and possibly also sparsity, depending on the model. This can be a powerful approach for certain tasks, being computationally efficient and unlocking the power of the linear model for phylogenetic studies. 
+License: CCBY-4.0
 Encoding: UTF-8
 LazyData: true
+URL: https://github.com/rdinnager/phurl
+BugReports: https://github.com/rdinnager/phurl/issues
+RoxygenNote: 6.1.1
