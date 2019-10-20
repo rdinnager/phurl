@@ -21,4 +21,5 @@ Suggests:
 Language: en-AU
 Imports: 
     magrittr,
-    tibble
+    tibble,
+    RRphylo
