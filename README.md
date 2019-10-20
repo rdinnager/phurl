@@ -7,6 +7,8 @@
 
 \[![Travis build
 status](https://travis-ci.org/rdinnager/phurl.svg?branch=master)\](<https://travis-ci.org/rdinnager/phurl>
+[![AppVeyor build
+status](https://ci.appveyor.com/api/projects/status/github/rdinnager/phurl?branch=master&svg=true)](https://ci.appveyor.com/project/rdinnager/phurl)
 <!-- badges: end -->
 
 The goal of phurl is to …
