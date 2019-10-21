@@ -16,10 +16,12 @@ BugReports: https://github.com/rdinnager/phurl/issues
 RoxygenNote: 6.1.1
 Suggests: 
     covr,
-    testthat,
+    testthat (>= 2.1.0),
     spelling
 Language: en-AU
 Imports: 
     magrittr,
     tibble,
-    RRphylo
+    RRphylo,
+    tidytree,
+    dplyr
