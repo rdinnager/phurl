@@ -2,3 +2,5 @@
 #' @importFrom tibble tibble
 ## usethis namespace: end
 NULL
+
+utils::globalVariables(c(".", "species", "node"))

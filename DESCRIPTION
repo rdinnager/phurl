@@ -24,4 +24,5 @@ Imports:
     tibble,
     RRphylo,
     tidytree,
-    dplyr
+    dplyr,
+    ape
