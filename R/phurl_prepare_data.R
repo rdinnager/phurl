@@ -26,7 +26,8 @@ phurl_prepare_data <- function(tree, traits, species_column = NULL,
     temp_tree$edge.length <- temp_tree$edge.length / max_depth
   }
   temp_tree$root.edge <- 1
-  tree_dat <- tidytree::as_tibble(temp_tree)
+  tree_dat <- tidytree::as_tibble(temp_tree) %>%
+    dplyr::filter(node <= ape::Ntip(temp_tree))
 
   edge_mat <- RRphylo::makeL(temp_tree)
   tip_df <- t(apply(edge_mat, 1, function(x) {x[x != 0][-1] <- rev(cumsum(rev(x[x != 0][-1]))); x})) %>%
