@@ -4,7 +4,8 @@
 \alias{phurl_prepare_data}
 \title{Prepare data for analysing with phurl models}
 \usage{
-phurl_prepare_data(tree, traits, species_column = NULL)
+phurl_prepare_data(tree, traits, species_column = NULL,
+  scale_edges = TRUE, centre = TRUE)
 }
 \arguments{
 \item{tree}{Phylogenetic tree of class \code{\link[ape]{phylo}} or \code{\link[tibble:tbl_df-class]{tibble}}
@@ -18,6 +19,12 @@ to the tree using order only (e.g. assuming data rows are in the same order as \
 \item{species_column}{Character value specifying which column of \code{traits} refers to the species
 names, if they are not specified in the rownames. If not \code{NULL}, this will override any rownames in
 \code{traits}}
+
+\item{scale_edges}{Should the edges be scaled to a maximum of 1? This is highly recommended for regularised
+models. Default TRUE.}
+
+\item{centre}{Should the resulting edge path predictor matrix be centred to so that each column has a mean
+of 0? This is recommended to improve convergence of the models. Default TRUE.}
 }
 \value{
 A object of class \code{\link{phurl}}

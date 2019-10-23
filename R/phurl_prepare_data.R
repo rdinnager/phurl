@@ -9,32 +9,39 @@
 #' @param species_column Character value specifying which column of \code{traits} refers to the species
 #' names, if they are not specified in the rownames. If not \code{NULL}, this will override any rownames in
 #' \code{traits}
+#' @param scale_edges Should the edges be scaled to a maximum of 1? This is highly recommended for regularised
+#' models. Default TRUE.
+#' @param centre Should the resulting edge path predictor matrix be centred to so that each column has a mean
+#' of 0? This is recommended to improve convergence of the models. Default TRUE.
 #'
 #' @return A object of class \code{\link{phurl}}
 #' @export
 #'
 #' @examples
-phurl_prepare_data <- function(tree, traits, species_column = NULL) {
+phurl_prepare_data <- function(tree, traits, species_column = NULL, 
+                               scale_edges = TRUE, centre = TRUE) {
   temp_tree <- tree
   max_depth <- max(ape::node.depth.edgelength(temp_tree))
-  temp_tree$edge.length <- temp_tree$edge.length / max_depth
+  if(scale_edges) {
+    temp_tree$edge.length <- temp_tree$edge.length / max_depth
+  }
   temp_tree$root.edge <- 1
   tree_dat <- tidytree::as_tibble(temp_tree)
 
   edge_mat <- RRphylo::makeL(temp_tree)
   tip_df <- t(apply(edge_mat, 1, function(x) {x[x != 0][-1] <- rev(cumsum(rev(x[x != 0][-1]))); x})) %>%
     dplyr::as_tibble() %>%
-    stats::setNames(paste0("edge_beginning_at_node_", names(.))) %>%
+    stats::setNames(paste0("node_", names(.))) %>%
     dplyr::mutate(species = rownames(edge_mat)) %>%
     dplyr::select(species, dplyr::everything())
   
-  root_node <- list(root_value = dplyr::sym(paste0("edge_beginning_at_node_", length(temp_tree$tip.label) + 1)))
+  root_node <- list(root_value = dplyr::sym(paste0("node_", length(temp_tree$tip.label) + 1)))
 
   first_splits_edges <- temp_tree$edge[temp_tree$edge[ , 1] == (length(temp_tree$tip.label) + 1), 2]
   first_splits_name <- paste0("first_split_", first_splits_edges)
   first_splits = list()
-  first_splits[[first_splits_name[1]]] <- dplyr::sym(paste0("edge_beginning_at_node_", first_splits_edges[1]))
-  first_splits[[first_splits_name[2]]] <- dplyr::sym(paste0("edge_beginning_at_node_", first_splits_edges[2]))
+  first_splits[[first_splits_name[1]]] <- dplyr::sym(paste0("node_", first_splits_edges[1]))
+  first_splits[[first_splits_name[2]]] <- dplyr::sym(paste0("node_", first_splits_edges[2]))
   
   tip_df <- tip_df %>%
     dplyr::rename(!!!root_node) %>%
@@ -44,7 +51,7 @@ phurl_prepare_data <- function(tree, traits, species_column = NULL) {
   node_mat <- RRphylo::makeL1(temp_tree)
   node_df <- t(apply(node_mat, 1, function(x) {x[x != 0][-1] <- rev(cumsum(rev(x[x != 0][-1]))); x})) %>%
     dplyr::as_tibble() %>%
-    stats::setNames(paste0("edge_beginning_at_node_", names(.))) %>%
+    stats::setNames(paste0("node_", names(.))) %>%
     dplyr::mutate(node = paste0("node_", rownames(node_mat))) %>%
     dplyr::select(node, dplyr::everything())
   
@@ -52,9 +59,26 @@ phurl_prepare_data <- function(tree, traits, species_column = NULL) {
     dplyr::rename(!!!root_node) %>%
     dplyr::rename(!!!first_splits)
   
+  if(centre) {
+    tip_df <- tip_df %>%
+      dplyr::mutate_at(dplyr::vars(-species, -root_value),
+                       ~ (. - mean(., na.rm = TRUE)))
+    
+    node_df <- node_df %>%
+      dplyr::mutate_at(dplyr::vars(-node, -root_value),
+                       ~ (. - mean(., na.rm = TRUE)))
+  }
+  
+  
+  nodes_on_path_to_tips <- apply(edge_mat, 1, function(x) paste0("node_", names(which(x > 0))))
+  names(nodes_on_path_to_tips) <- paste0("node_", names(nodes_on_path_to_tips))
+  nodes_on_path_to_nodes <- apply(node_mat, 1, function(x) paste0("node_", names(which(x > 0))))
+  names(nodes_on_path_to_nodes) <- paste0("node_", names(nodes_on_path_to_nodes))
+  
   if(!is.null(species_column)){
     tree_df <- tree_dat %>%
-      dplyr::left_join(traits, by = c("label" = species_column))
+      dplyr::left_join(traits, by = c("label" = species_column)) %>%
+      dplyr::rename(species = label)
   } else {
     if(is.vector(traits)) {
       if(is.null(names(traits))) {
@@ -79,16 +103,21 @@ phurl_prepare_data <- function(tree, traits, species_column = NULL) {
         }
     }
     tree_df <- tree_dat %>%
-      dplyr::left_join(trait_df, by = c("label" = "species"))
+      dplyr::left_join(trait_df, by = c("label" = "species")) %>%
+      dplyr::rename(species = label)
   }
 
   phurl_ob <- list(phylo = temp_tree, 
                    y_data = tree_df, 
                    x_data_tips = tip_df,
                    x_data_nodes = node_df,
+                   nodes_on_path_to_tips = nodes_on_path_to_tips,
+                   nodes_on_path_to_nodes = nodes_on_path_to_nodes,
                    model_fit = NULL, 
                    plots = NULL,
-                   phylo_unmodified = tree)
+                   phylo_unmodified = tree,
+                   scaled = scale_edges,
+                   centred = centre)
   class(phurl_ob) <- "phurl"
   phurl_ob
 }

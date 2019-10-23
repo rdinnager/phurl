@@ -38,6 +38,10 @@ test_that("different classes of trait data can be loaded and are the same", {
   expect_null(ob_vec$model_fit)
   expect_null(ob_vec$plots)
   
+  expect_equal(length(ob_vec$nodes_on_path_to_tips), ape::Ntip(ob_vec$phylo))
+  expect_equal(length(ob_vec$nodes_on_path_to_nodes), ape::Nnode(ob_vec$phylo))
   
+  expect_equal(ncol(ob_vec$x_data_tips), ape::Ntip(ob_vec$phylo) + ape::Nnode(ob_vec$phylo) + 1)
+  expect_equal(ncol(ob_vec$x_data_nodes), ape::Nnode(ob_vec$phylo) + 1)
   
 })

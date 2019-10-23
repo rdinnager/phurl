@@ -3,4 +3,4 @@
 ## usethis namespace: end
 NULL
 
-utils::globalVariables(c(".", "species", "node"))
+utils::globalVariables(c(".", "species", "node", "label", "root_value"))
