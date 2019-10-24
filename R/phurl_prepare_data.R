@@ -13,13 +13,17 @@
 #' models. Default TRUE.
 #' @param centre Should the resulting edge path predictor matrix be centred to so that each column has a mean
 #' of 0? This is recommended to improve convergence of the models. Default TRUE.
+#' @param standardise_traits Should traits values be standardised by subtracting the mean and dividing by
+#' them standard deviation? Recommended. Default TRUE.
 #'
 #' @return A object of class \code{\link{phurl}}
 #' @export
 #'
 #' @examples
 phurl_prepare_data <- function(tree, traits, species_column = NULL, 
-                               scale_edges = TRUE, centre = TRUE) {
+                               scale_edges = TRUE, centre = TRUE,
+                               transform_traits = NULL,
+                               standardise_traits = TRUE) {
   temp_tree <- tree
   max_depth <- max(ape::node.depth.edgelength(temp_tree))
   if(scale_edges) {
@@ -107,6 +111,15 @@ phurl_prepare_data <- function(tree, traits, species_column = NULL,
       dplyr::left_join(trait_df, by = c("label" = "species")) %>%
       dplyr::rename(species = label)
   }
+  
+  if(standardise_traits) {
+    mean_sd <- tree_df %>%
+      dplyr::summarise_at(dplyr::vars(-species, -node, -branch.length, -parent),
+                          list(mean = ~mean(., na.rm = TRUE), sd = ~sd(., na.rm = TRUE)))
+    tree_df <- tree_df %>%
+      dplyr::mutate_at(dplyr::vars(-species, -node, -branch.length, -parent),
+                       ~ (. - mean(., na.rm = TRUE)) / sd(., na.rm = TRUE))
+  }
 
   phurl_ob <- list(phylo = temp_tree, 
                    y_data = tree_df, 
@@ -117,8 +130,9 @@ phurl_prepare_data <- function(tree, traits, species_column = NULL,
                    model_fit = NULL, 
                    plots = NULL,
                    phylo_unmodified = tree,
-                   scaled = scale_edges,
-                   centred = centre)
+                   edge_scaled = scale_edges,
+                   edge_centred = centre,
+                   y_standardisation = mean_sd)
   class(phurl_ob) <- "phurl"
   phurl_ob
 }

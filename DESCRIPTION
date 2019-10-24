@@ -25,4 +25,7 @@ Imports:
     RRphylo,
     tidytree,
     dplyr,
-    ape
+    ape,
+    greta,
+    ncvreg,
+    glmnet
