@@ -5,7 +5,9 @@
 #' @param traits Trait data. Can be a named \code{vector}, a \code{matrix} or \code{data.frame} with named rows, where the rownames
 #' are the species names, or a \code{data.frame} or \code{\link[tibble:tbl_df-class]{tibble}} with a column specifying the
 #' species name. If species names are not referenced in either the rownames or a column, data will be matched
-#' to the tree using order only (e.g. assuming data rows are in the same order as \code{tree$tip.label}).
+#' to the tree using order only (e.g. assuming data rows are in the same order as \code{tree$tip.label}). Can also
+#' be \code{NULL} in which case only the predictor variables derived from the phylogeny are generated. This can
+#' be useful to feed into the simulation functions, or to use in a custom model somewhere else.
 #' @param species_column Character value specifying which column of \code{traits} refers to the species
 #' names, if they are not specified in the rownames. If not \code{NULL}, this will override any rownames in
 #' \code{traits}
@@ -22,10 +24,12 @@
 #' @export
 #'
 #' @examples
-phurl_prepare_data <- function(tree, traits, species_column = NULL,
+phurl_prepare_data <- function(tree, traits = NULL, species_column = NULL,
                                scale_edges = TRUE, centre = TRUE,
                                transform_traits = NULL,
                                standardise_traits = TRUE) {
+
+  ## generate x data from tree
   temp_tree <- tree
   max_depth <- max(ape::node.depth.edgelength(temp_tree))
   if(scale_edges) {
@@ -82,45 +86,50 @@ phurl_prepare_data <- function(tree, traits, species_column = NULL,
   nodes_on_path_to_nodes <- apply(node_mat, 1, function(x) paste0("node_", names(which(x > 0))))
   names(nodes_on_path_to_nodes) <- paste0("node_", names(nodes_on_path_to_nodes))
 
-  if(!is.null(species_column)){
-    tree_df <- tree_dat %>%
-      dplyr::left_join(traits, by = c("label" = species_column)) %>%
-      dplyr::rename(species = label)
-  } else {
-    if(is.vector(traits)) {
-      if(is.null(names(traits))) {
-        trait_df <- dplyr::tibble(species = temp_tree$tip.label,
-                                  trait = traits)
-        warning("traits object has no names, assuming same order as tree$tip.label")
-      } else {
-        trait_df <- dplyr::tibble(species = names(traits),
-                                  trait = traits)
-      }
+  ## generate y data from traits
+  if(!is.null(traits)){
+    if(!is.null(species_column)){
+      tree_df <- tree_dat %>%
+        dplyr::left_join(traits, by = c("label" = species_column)) %>%
+        dplyr::rename(species = label)
     } else {
-       if(!is.null(rownames(traits))) {
-        trait_df <- traits %>%
-          as.data.frame() %>%
-          tibble::rownames_to_column("species")
-       } else {
-         trait_df <- traits %>%
-           as.data.frame() %>%
-           dplyr::mutate(species = temp_tree$tip.label) %>%
-           dplyr::select(species, dplyr::everything())
-          warning("traits object has no rownames, assuming same order as tree$tip.label")
+      if(is.vector(traits)) {
+        if(is.null(names(traits))) {
+          trait_df <- dplyr::tibble(species = temp_tree$tip.label,
+                                    trait = traits)
+          warning("traits object has no names, assuming same order as tree$tip.label")
+        } else {
+          trait_df <- dplyr::tibble(species = names(traits),
+                                    trait = traits)
         }
+      } else {
+         if(!is.null(rownames(traits))) {
+          trait_df <- traits %>%
+            as.data.frame() %>%
+            tibble::rownames_to_column("species")
+         } else {
+           trait_df <- traits %>%
+             as.data.frame() %>%
+             dplyr::mutate(species = temp_tree$tip.label) %>%
+             dplyr::select(species, dplyr::everything())
+            warning("traits object has no rownames, assuming same order as tree$tip.label")
+          }
+      }
+      tree_df <- tree_dat %>%
+        dplyr::left_join(trait_df, by = c("label" = "species")) %>%
+        dplyr::rename(species = label)
     }
-    tree_df <- tree_dat %>%
-      dplyr::left_join(trait_df, by = c("label" = "species")) %>%
-      dplyr::rename(species = label)
-  }
 
-  if(standardise_traits) {
-    mean_sd <- tree_df %>%
-      dplyr::summarise_at(dplyr::vars(-species, -node, -branch.length, -parent),
-                          list(mean = ~mean(., na.rm = TRUE), sd = ~sd(., na.rm = TRUE)))
-    tree_df <- tree_df %>%
-      dplyr::mutate_at(dplyr::vars(-species, -node, -branch.length, -parent),
-                       ~ (. - mean(., na.rm = TRUE)) / sd(., na.rm = TRUE))
+    if(standardise_traits) {
+      mean_sd <- tree_df %>%
+        dplyr::summarise_at(dplyr::vars(-species, -node, -branch.length, -parent),
+                            list(mean = ~mean(., na.rm = TRUE), sd = ~sd(., na.rm = TRUE)))
+      tree_df <- tree_df %>%
+        dplyr::mutate_at(dplyr::vars(-species, -node, -branch.length, -parent),
+                         ~ (. - mean(., na.rm = TRUE)) / sd(., na.rm = TRUE))
+    }
+  } else {
+    tree_df <- NULL
   }
 
   phurl_ob <- list(phylo = temp_tree,
@@ -129,7 +138,7 @@ phurl_prepare_data <- function(tree, traits, species_column = NULL,
                    x_data_nodes = node_df,
                    nodes_on_path_to_tips = nodes_on_path_to_tips,
                    nodes_on_path_to_nodes = nodes_on_path_to_nodes,
-                   model_fit = NULL,
+                   model = NULL,
                    plots = NULL,
                    phylo_unmodified = tree,
                    edge_scaled = scale_edges,

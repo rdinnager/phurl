@@ -51,9 +51,16 @@ smoothed estimate of trait evolution rates along a phylogeny's branches. Shrinka
 change in rates can occur at each split of the phylogeny.
 }
 \details{
-The Bayesian version of Ridge regression treats the \eqn{\beta} coefficients as being drawn from a
-gaussian distribution with mean 0 and a shared standard deviation. This standard deviation parameter itself
-has an inverse gamma prior distribution. This has the effect of "shrinking" coefficients towards zero where the
-strength of this shrinkage is inversely proportional to the gaussian standard deviation. E.g.:
-\deqn{y_i \sim f\left(\mu_i, \phi\right) \\ g\left(\mu\right) = \alpha + \sum_j\beta_jx_i \\ \beta_j \sim \text{Normal}\left(0, \tau\right) \\ \tau \sim \text{InvGamma}\left(1, 1\right)}
+Test equations:
+  \ifelse{html}{\out{<pre>y<sub>i</sub> ~ f(μ, φ)
+
+             ===
+             \
+  g(μ) = α + /   β<sub>j</sub>
+             ===
+               j
+
+β<sub>j</sub> ~ Normal(0, τ)
+
+τ ~ InvGamma(1, 1)</pre>}}{\deqn{y_i \sim f\left(\mu_i, \phi\right)}\deqn{g\left(\mu\right) = \alpha + \sum_j\beta_jx_i\deqn{\beta_j \sim \text{Normal}\left(0, \tau\right)\deqn{\tau \sim \text{InvGamma}\left(1, 1\right)}}}}
 }

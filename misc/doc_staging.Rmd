@@ -1,0 +1,38 @@
+---
+title: "Documentation Staging Area"
+author: "Russell Dinnage"
+date: "25/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Bayesian Ridge Regression Equations
+
+The Bayesian version of Ridge regression treats the \eqn{\beta} coefficients as being drawn from a
+gaussian distribution with mean 0 and a shared standard deviation. This standard deviation parameter itself
+has an inverse gamma prior distribution. This has the effect of "shrinking" coefficients towards zero where the
+strength of this shrinkage is inversely proportional to the gaussian standard deviation. E.g.:
+$$y_i \sim f\left(\mu_i, \phi\right)$$
+
+$$g\left(\mu\right) = \alpha + \sum_j\beta_jx_i$$
+$$\beta_j \sim \text{Normal}\left(0, \tau\right)$$
+
+$$\tau \sim \text{InvGamma}\left(1, 1\right)$$
+
+https://arthursonzogni.com/Diagon/#code_area
+
+
+y_i = f(μ, φ)        
+                     
+           ===       
+           \         
+g(μ) = α + /   beta_j
+           ===       
+            j        
+                     
+beta_j = Normal(0, τ)
+                     
+τ = InvGamma(1, 1)
