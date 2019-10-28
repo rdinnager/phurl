@@ -4,7 +4,7 @@
 \alias{phurl_prepare_data}
 \title{Prepare data for analysing with phurl models}
 \usage{
-phurl_prepare_data(tree, traits, species_column = NULL,
+phurl_prepare_data(tree, traits = NULL, species_column = NULL,
   scale_edges = TRUE, centre = TRUE, transform_traits = NULL,
   standardise_traits = TRUE)
 }
@@ -15,7 +15,9 @@ phurl_prepare_data(tree, traits, species_column = NULL,
 \item{traits}{Trait data. Can be a named \code{vector}, a \code{matrix} or \code{data.frame} with named rows, where the rownames
 are the species names, or a \code{data.frame} or \code{\link[tibble:tbl_df-class]{tibble}} with a column specifying the
 species name. If species names are not referenced in either the rownames or a column, data will be matched
-to the tree using order only (e.g. assuming data rows are in the same order as \code{tree$tip.label}).}
+to the tree using order only (e.g. assuming data rows are in the same order as \code{tree$tip.label}). Can also
+be \code{NULL} in which case only the predictor variables derived from the phylogeny are generated. This can
+be useful to feed into the simulation functions, or to use in a custom model somewhere else.}
 
 \item{species_column}{Character value specifying which column of \code{traits} refers to the species
 names, if they are not specified in the rownames. If not \code{NULL}, this will override any rownames in

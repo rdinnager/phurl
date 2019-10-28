@@ -24,7 +24,7 @@
 #' @param ... Any other parameters to pass to the underlying fitting function (in this case \code{\link[greta]{mcmc}})
 #'
 #' @details Test equations:
-#'   \ifelse{html}{\out{<pre>y<sub>i</sub> ~ f(μ, φ)
+#' \out{<pre>y<sub>i</sub> ~ f(μ, φ)
 #'
 #'              ===
 #'              \
@@ -34,7 +34,7 @@
 #'
 #' β<sub>j</sub> ~ Normal(0, τ)
 #'
-#' τ ~ InvGamma(1, 1)</pre>}}{\deqn{y_i \sim f\left(\mu_i, \phi\right)}\deqn{g\left(\mu\right) = \alpha + \sum_j\beta_jx_i\deqn{\beta_j \sim \text{Normal}\left(0, \tau\right)\deqn{\tau \sim \text{InvGamma}\left(1, 1\right)}}}}
+#' τ ~ InvGamma(1, 1)</pre>}
 #'
 #'
 #'
@@ -84,17 +84,17 @@ phurl_fit_traits_continuous_bayesian <- function(x, family = c("gaussian"), meth
 }
 
 run_greta_ridge <- function(y, design, n_samples, thin, warmup, chains, n_cores, ...) {
-  int <- greta::normal(0, 10)
+  root_value <- greta::normal(0, 10)
   tau <- greta::inverse_gamma(1, 1)
   coefs <- greta::normal(0, tau, dim = ncol(design))
 
   sd <- greta::cauchy(0, 3, truncation = c(0, Inf))
 
-  mu <- int + greta::`%*%`(design, coefs)
+  mu <- root_value + greta::`%*%`(design, coefs)
 
   greta::distribution(y) <- greta::normal(mu, sd)
 
-  m <- greta::model(int, coefs, sd, tau)
+  m <- greta::model(root_value, coefs, sd, tau)
 
   draws <- greta::mcmc(m, n_samples = n_samples, thin = thin, warmup = warmup, chains = chains, n_cores = n_cores, ...)
 

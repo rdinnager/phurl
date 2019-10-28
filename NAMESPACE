@@ -3,5 +3,6 @@
 export("%>%")
 export(phurl_fit_traits_continuous_bayesian)
 export(phurl_prepare_data)
+export(phurl_sim_traits_continuous)
 importFrom(magrittr,"%>%")
 importFrom(tibble,tibble)

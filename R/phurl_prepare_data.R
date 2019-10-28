@@ -130,6 +130,7 @@ phurl_prepare_data <- function(tree, traits = NULL, species_column = NULL,
     }
   } else {
     tree_df <- NULL
+    mean_sd <- NULL
   }
 
   phurl_ob <- list(phylo = temp_tree,
