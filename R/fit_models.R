@@ -24,7 +24,7 @@
 #' @param ... Any other parameters to pass to the underlying fitting function (in this case \code{\link[greta]{mcmc}})
 #'
 #' @details Test equations:
-#' \out{<pre>y<sub>i</sub> ~ f(μ, φ)
+#' \ifelse{html}{\out{<pre>y<sub>i</sub> ~ f(μ, φ)
 #'
 #'              ===
 #'              \
@@ -34,7 +34,17 @@
 #'
 #' β<sub>j</sub> ~ Normal(0, τ)
 #'
-#' τ ~ InvGamma(1, 1)</pre>}
+#' τ ~ InvGamma(1, 1)</pre>}}{\out{<pre>y<sub>i</sub> ~ f(mu, phi)
+#'
+#'                   ===
+#'                   \
+#'   g(mu) = alpha + /   beta<sub>j</sub>
+#'                   ===
+#'                     j
+#'
+#' beta<sub>j</sub> ~ Normal(0, tau)
+#'
+#' tau ~ InvGamma(1, 1)</pre>}}
 #'
 #'
 #'
@@ -55,27 +65,51 @@ phurl_fit_traits_continuous_bayesian <- function(x, family = c("gaussian"), meth
   }
 
   if(regularise_first_split) {
-    design <- x$x_data_tips %>%
-      dplyr::select(-species, -root_value, -dplyr::starts_with("first_split")) %>%
-      as.matrix %>%
+    design_tips <- x$x_data_tips %>%
+      dplyr::select(-species, -root_value) %>%
+      as.matrix() %>%
       greta::as_data()
   } else {
-    design <- x$x_data_tips %>%
-      dplyr::select(-species, -root_value) %>%
-      as.matrix %>%
+    design_tips <- x$x_data_tips %>%
+      dplyr::select(-species, -root_value, -dplyr::starts_with("first_split")) %>%
+      as.matrix() %>%
+      greta::as_data()
+    
+    first_splits_tips <- x$x_data_tips %>%
+      dplyr::select(dplyr::starts_with("first_split")) %>%
+      as.matrix() %>%
+      greta::as_data()
+    
+    first_splits_nodes <- x$x_data_nodes %>%
+      dplyr::select(dplyr::starts_with("first_split")) %>%
+      as.matrix() %>%
       greta::as_data()
   }
+  
+  design_nodes <- x$x_data_nodes %>%
+    dplyr::select(-node) %>% 
+    as.matrix() %>%
+    cbind(matrix(0, ncol = ape::Ntip(x$phylo), nrow = nrow(x$x_data_nodes))) %>%
+    greta::as_data()
 
   y <- x$y_data %>%
     dplyr::select(-parent, -node, -branch.length, -species) %>%
     as.list() %>%
     lapply(greta::as_data)
+  
+  if(length(family) < ncol(y)) {
+    family <- rep(family, length.out = ncol(y))
+  }
 
   draws <- list()
   for(i in 1:length(y)) {
     message('Running model on trait "', names(y)[i], '"')
     #draws[[i]] <- run_greta_ridge(y[[i]], design, n_samples = n_samples, thin = thin, warmup = warmup, chains = chains, n_cores = n_cores, ...)
-    draws <- run_greta_ridge(y[[i]], design, n_samples = n_samples, thin = thin, warmup = warmup, chains = chains, n_cores = n_cores)
+    if(regularise_first_split) {
+      draws <- run_greta_ridge(y[[i]], design_tips, design_nodes, family = family[i], n_samples = n_samples, thin = thin, warmup = warmup, chains = chains, n_cores = n_cores)
+    } else {
+      draws <- run_greta_ridge(y[[i]], design_tips, design_nodes, first_splits_tips, first_splits_nodes, family = family, n_samples = n_samples, thin = thin, warmup = warmup, chains = chains, n_cores = n_cores)
+    }
     names(draws) <- names(y)
   }
 
@@ -83,20 +117,43 @@ phurl_fit_traits_continuous_bayesian <- function(x, family = c("gaussian"), meth
 
 }
 
-run_greta_ridge <- function(y, design, n_samples, thin, warmup, chains, n_cores, ...) {
+run_greta_ridge <- function(y, design_tips, design_nodes, first_splits_tips = NULL, first_splits_nodes = NULL,
+                            family, n_samples, thin, warmup, chains, n_cores, ...) {
   root_value <- greta::normal(0, 10)
   tau <- greta::inverse_gamma(1, 1)
-  coefs <- greta::normal(0, tau, dim = ncol(design))
+  
+  if(!is.null(first_splits_tips)) {
+    first_splits <- greta::normal(0, 10, dim = 2L)
+  }
+  
+  coefs <- greta::normal(0, tau, dim = ncol(design_tips))
 
   sd <- greta::cauchy(0, 3, truncation = c(0, Inf))
 
-  mu <- root_value + greta::`%*%`(design, coefs)
-
-  greta::distribution(y) <- greta::normal(mu, sd)
-
-  m <- greta::model(root_value, coefs, sd, tau)
-
+  if(!is.null(first_splits_tips)) {
+    mu_tips <- root_value + greta::`%*%`(first_splits_tips, first_splits) + greta::`%*%`(design_tips, coefs)
+  } else {
+    mu_tips <- root_value + greta::`%*%`(design_tips, coefs)
+  }
+  
+  if(family == "gaussian") {
+    greta::distribution(y) <- greta::normal(mu_tips, sd)
+  }
+  
+  if(!is.null(first_splits_tips)) {
+    m <- greta::model(root_value, coefs, sd, tau, mu_tips)
+  } else {
+    m <- greta::model(root_value, first_splits, coefs, sd, tau, mu_tips)
+  }
+  
   draws <- greta::mcmc(m, n_samples = n_samples, thin = thin, warmup = warmup, chains = chains, n_cores = n_cores, ...)
-
-  draws
+  
+  if(!is.null(first_splits_tips)) {
+    mu_nodes <- root_value + greta::`%*%`(first_splits_nodes, first_splits) + greta::`%*%`(design_nodes, coefs)
+  } else {
+    mu_nodes <- root_value + greta::`%*%`(design_nodes, coefs)
+  }
+  
+  ### convert draws and mu_nodes to matrix and then tibble and combine
+  
 }

@@ -52,7 +52,7 @@ change in rates can occur at each split of the phylogeny.
 }
 \details{
 Test equations:
-\out{<pre>y<sub>i</sub> ~ f(μ, φ)
+\ifelse{html}{\out{<pre>y<sub>i</sub> ~ f(μ, φ)
 
              ===
              \
@@ -62,5 +62,15 @@ Test equations:
 
 β<sub>j</sub> ~ Normal(0, τ)
 
-τ ~ InvGamma(1, 1)</pre>}
+τ ~ InvGamma(1, 1)</pre>}}{\out{<pre>y<sub>i</sub> ~ f(mu, phi)
+
+                  ===
+                  \
+  g(mu) = alpha + /   beta<sub>j</sub>
+                  ===
+                    j
+
+beta<sub>j</sub> ~ Normal(0, tau)
+
+tau ~ InvGamma(1, 1)</pre>}}
 }
