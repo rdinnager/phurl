@@ -19,24 +19,23 @@
 #' @export
 #'
 #' @examples
-phurl_sim_traits_continuous <- function(x, family = c("gaussian"), n_trait = 1, root_value = 0, initial_rate, tau = 1, sd = 0.25) {
+prl_sim_traits_continuous <- function(x, family = c("gaussian"), n_trait = 1, root_value = 0, initial_rate, tau = 1, sd = 0.25) {
   
-  if(inherits(x, "phurl")) {
-    design <- x$x_data_tips %>%
-      dplyr::select(-species, -root_value) %>%
-      as.matrix
-  } else {
-    design <- phurl_prepare_data(tree = x)$x_data_tips %>%
-      dplyr::select(-species, -root_value) %>%
-      as.matrix
+  if(!inherits(x, "phurl")) {
+    x <- prl_prepare_data(tree = x)
   }
+  
+  design_tips <- x$x_data_tips %>%
+    dplyr::select(-species, -root_value) %>%
+    as.matrix
+  
   
   coefs <- stats::rnorm(ncol(design), 0, tau)
   
   first_splits <- which(startsWith(colnames(design), "first_split"))
   coefs[first_splits] <- c(initial_rate, -initial_rate)
   
-  mu <- root_value + design %*% coefs
+  mu_tips <- root_value + design_tips %*% coefs
   
-  y <- stats::rnorm(length(mu), mu, sd)
+  y_tips <- stats::rnorm(length(mu), mu, sd)
 }

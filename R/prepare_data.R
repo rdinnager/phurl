@@ -24,7 +24,7 @@
 #' @export
 #'
 #' @examples
-phurl_prepare_data <- function(tree, traits = NULL, species_column = NULL,
+prl_prepare_data <- function(tree, traits = NULL, species_column = NULL,
                                scale_edges = TRUE, centre = TRUE,
                                transform_traits = NULL,
                                standardise_traits = TRUE) {

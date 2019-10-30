@@ -12,16 +12,16 @@ test_that("different classes of trait data can be loaded and are the same", {
   traits_dataframe_names_col <- traits_tibble_no_names_col %>%
     as.data.frame()
   
-  expect_warning(ob1 <- phurl_prepare_data(tree, traits_vec_no_names))
-  expect_warning(ob2 <- phurl_prepare_data(tree, traits_mat_no_names))
+  expect_warning(ob1 <- prl_prepare_data(tree, traits_vec_no_names))
+  expect_warning(ob2 <- prl_prepare_data(tree, traits_mat_no_names))
   
   expect_identical(ob1, ob2)
   
-  ob_vec <- phurl_prepare_data(tree, traits_vec)
-  ob_mat <- phurl_prepare_data(tree, traits_mat_names)
-  ob_df_no_col <- phurl_prepare_data(tree, traits_dataframe_names)
-  ob_df_col <- phurl_prepare_data(tree, traits_dataframe_names_col, species_column = "species")
-  ob_tibble_col <- phurl_prepare_data(tree, traits_tibble_no_names_col, species_column = "species")
+  ob_vec <- prl_prepare_data(tree, traits_vec)
+  ob_mat <- prl_prepare_data(tree, traits_mat_names)
+  ob_df_no_col <- prl_prepare_data(tree, traits_dataframe_names)
+  ob_df_col <- prl_prepare_data(tree, traits_dataframe_names_col, species_column = "species")
+  ob_tibble_col <- prl_prepare_data(tree, traits_tibble_no_names_col, species_column = "species")
   
   expect_identical(ob_vec, ob_mat)
   expect_identical(ob_vec, ob_df_no_col)

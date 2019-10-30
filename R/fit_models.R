@@ -56,7 +56,7 @@
 #' @export
 #'
 #' @examples
-phurl_fit_traits_continuous_bayesian <- function(x, family = c("gaussian"), method = c("Ridge"),
+prl_fit_traits_continuous_bayesian <- function(x, family = c("gaussian"), method = c("Ridge"),
                                                  tree = NULL, regularise_first_split = FALSE,
                                                  n_samples = 1000, thin = 1,
                                                  warmup = 1000, chains = 4, n_cores = NULL, ...) {
@@ -131,9 +131,9 @@ run_greta_ridge <- function(y, design_tips, design_nodes, first_splits_tips = NU
   sd <- greta::cauchy(0, 3, truncation = c(0, Inf))
 
   if(!is.null(first_splits_tips)) {
-    mu_tips <- root_value + greta::`%*%`(first_splits_tips, first_splits) + greta::`%*%`(design_tips, coefs)
+    mu_tips <- root_value + first_splits_tips %*% first_splits + design_tips %*% coefs
   } else {
-    mu_tips <- root_value + greta::`%*%`(design_tips, coefs)
+    mu_tips <- root_value + design_tips %*% coefs
   }
   
   if(family == "gaussian") {
@@ -149,10 +149,12 @@ run_greta_ridge <- function(y, design_tips, design_nodes, first_splits_tips = NU
   draws <- greta::mcmc(m, n_samples = n_samples, thin = thin, warmup = warmup, chains = chains, n_cores = n_cores, ...)
   
   if(!is.null(first_splits_tips)) {
-    mu_nodes <- root_value + greta::`%*%`(first_splits_nodes, first_splits) + greta::`%*%`(design_nodes, coefs)
+    mu_nodes <- root_value + first_splits_nodes %*% first_splits + design_nodes %*% coefs
   } else {
-    mu_nodes <- root_value + greta::`%*%`(design_nodes, coefs)
+    mu_nodes <- root_value + design_nodes %*% coefs
   }
+  
+  mu_nodes_draws <- greta::calculate(mu_nodes, draws)
   
   ### convert draws and mu_nodes to matrix and then tibble and combine
   
