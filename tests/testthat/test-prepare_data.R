@@ -1,6 +1,6 @@
 test_that("different classes of trait data can be loaded and are the same", {
-  tree <- RRphylo::DataOrnithodirans$treedino
-  traits_vec <- RRphylo::DataOrnithodirans$massdino
+  tree <- RRphylo::DataCetaceans$treecet
+  traits_vec <- RRphylo::DataCetaceans$masscet
   traits_vec_no_names <- unname(traits_vec)
   traits_mat_no_names <- matrix(traits_vec, ncol = 1) 
   colnames(traits_mat_no_names) <- "trait"
