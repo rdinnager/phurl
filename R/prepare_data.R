@@ -36,14 +36,23 @@ prl_prepare_data <- function(tree, traits = NULL, species_column = NULL,
     temp_tree$edge.length <- temp_tree$edge.length / max_depth
   }
   temp_tree$root.edge <- 1
+  #tip_names <- dplyr::tibble(tip_name = temp_tree$tip.label, node = 1:length(temp_tree$tip.label))
   tree_dat <- tidytree::as_tibble(temp_tree) %>%
     dplyr::filter(node <= ape::Ntip(temp_tree))
+  
+  tip_labels <- tree_dat$node %>%
+    as.data.frame() %>%
+    unlist()
+  names(tip_labels) <- tree_dat$label
+  
+  temp_tree2 <- temp_tree
+  temp_tree2$tip.label[temp_tree2$tip.label %in% names(tip_labels)] <- tip_labels[temp_tree2$tip.label[temp_tree2$tip.label %in% names(tip_labels)]]
 
-  edge_mat <- RRphylo::makeL(temp_tree)
+  edge_mat <- RRphylo::makeL(temp_tree2)
   tip_df <- t(apply(edge_mat, 1, function(x) {x[x != 0][-1] <- rev(cumsum(rev(x[x != 0][-1]))); x})) %>%
     dplyr::as_tibble() %>%
     stats::setNames(paste0("node_", names(.))) %>%
-    dplyr::mutate(species = rownames(edge_mat)) %>%
+    dplyr::mutate(species = names(tip_labels)) %>%
     dplyr::select(species, dplyr::everything())
 
   root_node <- list(root_value = dplyr::sym(paste0("node_", length(temp_tree$tip.label) + 1)))
@@ -66,9 +75,11 @@ prl_prepare_data <- function(tree, traits = NULL, species_column = NULL,
     dplyr::mutate(node = paste0("node_", rownames(node_mat))) %>%
     dplyr::select(node, dplyr::everything())
 
+  first_splits_node <- first_splits[first_splits %in% colnames(node_df)]
+  
   node_df <- node_df %>%
     dplyr::rename(!!!root_node) %>%
-    dplyr::rename(!!!first_splits)
+    dplyr::rename(!!!first_splits_node)
 
   if(centre) {
     tip_df <- tip_df %>%
@@ -144,7 +155,9 @@ prl_prepare_data <- function(tree, traits = NULL, species_column = NULL,
                    phylo_unmodified = tree,
                    edge_scaled = scale_edges,
                    edge_centred = centre,
-                   y_standardisation = mean_sd)
+                   y_standardisation = mean_sd,
+                   first_splits = first_splits,
+                   root_node = root_node)
   class(phurl_ob) <- "phurl"
   phurl_ob
 }

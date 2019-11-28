@@ -2,10 +2,10 @@
 % Please edit documentation in R/simulate_models.R
 \name{prl_sim_traits_continuous}
 \alias{prl_sim_traits_continuous}
-\title{Title}
+\title{Simulate Continuous Traits on a Phylogeny}
 \usage{
 prl_sim_traits_continuous(x, family = c("gaussian"), n_trait = 1,
-  root_value = 0, initial_rate, tau = 1, sd = 0.25)
+  root_value = 0, initial_rate = 2, tau = 5, sd = 0.25)
 }
 \arguments{
 \item{x}{Object to be simulated from. Can be either a \code{phurl} object generated from
@@ -18,17 +18,17 @@ to use different families for different traits.}
 
 \item{root_value}{A vector of root values for each trait. Will be recycled to length \code{n_trait}}
 
-\item{initial_rate}{A vector of initial rates. Rate at which traits are diverging after first split (will
-be assumed to be c(initial_rate, -initial_rate) along the first splitting edges). Will be recycled to length 
+\item{initial_rate}{Vector of standard deviations for initial rates. Rate at which traits are diverging after first split (will
+be drawn from a normal distribution with \code{sd = initial_rate}). Will be recycled to length 
 \code{n_trait}}
 
 \item{tau}{A vector tau values. This parameter controls the degree to which trait evolution rates change at
-phylogeny nodes. Rate changes are sampled from a gaussian distribution with mean zero and sd equal to tau.
-Will be recycled to length \code{n_trait}}
+phylogeny nodes. Rate changes are sampled from a gaussian distribution with mean zero and sd equal to tau,
+scaled by the edge length of the parent edge. Will be recycled to length \code{n_trait}}
 
 \item{sd}{Gaussian error of final tip-level observations. Standard deviation of noise added to tip-level
 trait values. Only used if \code{family="gaussian"}}
 }
 \description{
-Title
+Simulate Continuous Traits on a Phylogeny
 }
