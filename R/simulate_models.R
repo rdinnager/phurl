@@ -34,6 +34,8 @@ prl_sim_traits_continuous <- function(x, family = c("gaussian"), n_trait = 1, ro
     as.matrix() %>%
     cbind(matrix(0, ncol = ape::Ntip(x$phylo), nrow = nrow(x$x_data_nodes)))
   
+  colnames(design_nodes)[colnames(design_nodes) == ""] <- colnames(design_tips)[colnames(design_nodes) == ""]
+  
   tree_dat <- tidytree::as_tibble(x$phylo)
   parent_branches <- purrr::map_dfr(tree_dat$node, ~tidytree::parent(tree_dat, .) %>%
                                   dplyr::select(branch.length) %>%
@@ -52,6 +54,7 @@ prl_sim_traits_continuous <- function(x, family = c("gaussian"), n_trait = 1, ro
   generate_trait <- function() {
   
     coefs <- stats::rnorm(ncol(design_tips), 0, tau * edge_weights[colnames(design_tips)])
+    names(coefs) <- colnames(design_tips)
     
     first_splits <- which(startsWith(colnames(design_tips), "first_split"))
     coefs[first_splits] <- rnorm(2, sd = initial_rate)
@@ -62,7 +65,7 @@ prl_sim_traits_continuous <- function(x, family = c("gaussian"), n_trait = 1, ro
     y_tips <- stats::rnorm(length(mu_tips), mu_tips, sd)
     y_nodes <- mu_nodes
     
-    list(y_tips = y_tips, y_nodes = y_nodes)
+    list(y_tips = y_tips, y_nodes = y_nodes, delta_rates = coefs)
   }
   
   ys <- replicate(n_trait, generate_trait(), simplify = FALSE)
@@ -70,18 +73,17 @@ prl_sim_traits_continuous <- function(x, family = c("gaussian"), n_trait = 1, ro
   
   tips_ys <- lapply(ys, function(z) z$y_tips) %>%
     dplyr::as_tibble() %>%
-    dplyr::mutate(label = x$x_data_tips$species)
+    dplyr::mutate(species = x$x_data_tips$species)
   
   nodes_ys <- lapply(ys, function(z) z$y_nodes) %>%
     dplyr::as_tibble() %>%
     dplyr::mutate(node = x$x_data_nodes$node)
   
-  trait_df <- tidytree::as_tibble(x$phylo) %>%
-    dplyr::filter(node <= ape::Ntip(x$phylo)) %>%
-    dplyr::as_tibble() %>%
-    dplyr::left_join(tips_ys, by = "label") %>%
-    dplyr::rename(species = label) %>%
-    dplyr::select(-parent, -node, -branch.length)
+  rates_df <- tidytree::as_tibble(x$phylo) %>%
+    dplyr::left_join(nodes_ys, by = "node")
+  
+  trait_df <- dplyr::tibble(species = x$x_data_tips$species) %>%
+    dplyr::left_join(tips_ys, by = "species")
   
   trait_nodes_df <- dplyr::tibble(node = x$x_data_nodes$node) %>%
     dplyr::left_join(nodes_ys, by = "node") 

@@ -139,7 +139,7 @@ prl_prepare_data <- function(tree, traits = NULL, species_column = NULL,
         dplyr::mutate_at(dplyr::vars(-species, -node, -branch.length, -parent),
                          ~ (. - mean(., na.rm = TRUE)) / sd(., na.rm = TRUE))
     } else {
-      tree_df <- NULL
+      tree_df <- tree_df
       mean_sd <- NULL
     }
   } else {
